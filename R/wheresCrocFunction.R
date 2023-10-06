@@ -4,7 +4,7 @@ install.packages("WheresCroc_1.2.2.tar.gz", repos = NULL, type="source")
 # Load the library
 library("WheresCroc")
 
-hiddenMarkov <- function(readings, positions, edges, probs){
+emissionsVector <- function(readings, probs){
   salinity = dnorm(readings[1], probs[["salinity"]][, 1], probs[["salinity"]][, 2], FALSE)
   phosphate = dnorm(readings[2], probs[["phosphate"]][, 1], probs[["phosphate"]][, 2], FALSE)
   nitrogen = dnorm(readings[3], probs[["nitrogen"]][, 1], probs[["nitrogen"]][, 2], FALSE)
@@ -16,16 +16,33 @@ hiddenMarkov <- function(readings, positions, edges, probs){
   sum = sum(p)
   for (i in 1:40) {
     print(sum(p))
-    p[i] = p[i] / sum
+    p[i] = p[i] / sum # normalize
   }
-  return(p)
+  return(p) # highest prob pos for croc (Vector)
+}
+
+transitionMatrix <- function() {
+  pass
+}
+bfs <- function(goal, ourPos, edges) {
+  
+}
+# Which waterhole to search in
+hiddenMarkov <- function(prevProbPos, readings, positions, edges, probs){
+  # TODO: 
+  # 1. Trans matrix = transitionMatrix()
+  emissions = emissionsVector(readings, probs)
+  newProbPos = prevProbPos*transitionMatric()*emissions
+  return (which.max(newProbPos))
+  
 }
 
 myFunction <- function(moveInfo, readings, positions, edges, probs){
   
-  p <- hiddenMarkov(readings, positions, edges, probs)
-  new_p <- which.max(p)
-  print(new_p)
+  probPos <- hiddenMarkov(readings, positions, edges, probs)
+  goal =
+  # 2. Search positions - if 2 - take 2 steps - if 1 take step -> search
+  print(probPos)
   options=getOptions(positions[3],edges)
   
   moveInfo$moves=c(options[1],0)

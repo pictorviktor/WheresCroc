@@ -4,7 +4,8 @@
 ## Inparameter = salinity, phosphate and nitrogen levels för alla positioner
 ## För varje drag beräkna Markov utifrån salinity, phosphate and nitrogen levels
 ## - på samtliga positioner
-## Transfer matrix?
+## Transfer matrix? hurpududududu
+
 
 
 ## Utparameter = Sannolikhet att Croc är på en given plats. Lista, matris eller variabel?
