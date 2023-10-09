@@ -24,10 +24,17 @@ emissionsVector <- function(readings, probs){
   return(p) # prob of each pos for croc given readings (Vector)
 }
 
-transitionMatrix <- function() {
-  matrix = replicate(1600, 1)
+transitionMatrix <- function(edges) {
+  matrix = matrix(0, nrow = 40, ncol = 40)
   transitionMatrix = matrix(matrix, nrow = 40)
-  return(diag(40))
+  for (i in 1:40){
+    neighbors = getOptions(i, edges)
+    for (n in neighbors){
+      transitionMatrix[i,n] = 1/length(neighbors)
+    }
+  }
+  #print(transitionMatrix)
+  return(transitionMatrix)
 }
 
 # Breath-first serach to find a path to porbPos
@@ -42,7 +49,7 @@ bfs <- function(goal, ourPos, edges) {
     while (length(queue) != 0){
       node = queue[[1]]
       if (node$pos == goal){
-        if (length(node$path) == 1){return(c(node$path,0))}
+        if (length(node$path) <= 2){return(c(node$path,0))}
         else{return(c(node$path[1],node$path[2]))}
       }
       else{
@@ -62,7 +69,7 @@ bfs <- function(goal, ourPos, edges) {
 
 # Which waterhole to search in
 hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
-  transMatrix = transitionMatrix()
+  transMatrix = transitionMatrix(edges)
   emissions = emissionsVector(readings, probs)
   newProb = transMatrix%*%emissions
   markovProb = newProb*prevProb
@@ -70,17 +77,23 @@ hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
 }
 
 myFunction <- function(moveInfo, readings, positions, edges, probs){
+  if (moveInfo$mem$status == 0 || moveInfo$mem$status == 1) {
+    moveInfo$mem$prevProb <- replicate(40,1)
+  }
   #prevProb <- moveInfo$mem$prevProb
-  prevProb= replicate(40,1)
+  #prevProb= replicate(40,1)
   newProb <- hiddenMarkov(prevProb,readings, positions, edges, probs)
+  newProb[positions[3]] <- 0
   
   goal <- which.max(newProb)
   print(goal)
   moves <- bfs(goal, positions[3],edges)
+  print(moves)
   
-  moveInfo$moves = moves
+  moveInfo$moves <- moves
   
   moveInfo$mem$prevProb <- newProb
+  moveInfo$mem$status <- 2
   return(moveInfo)
 }
 
