@@ -40,6 +40,7 @@ bfs <- function(goal, ourPos, edges) {
     while (length(queue) != 0){
       node = queue[[1]]
       if (node$pos == goal){
+        print(node$path)
         if (length(node$path) == 1){return(c(node$path,0))}
         else{return(c(node$path[1],node$path[2]))}
       }
@@ -48,7 +49,7 @@ bfs <- function(goal, ourPos, edges) {
         neighbors = getOptions(node$pos, edges)
         for (n in neighbors){
           if (!(n %in% visited)) {
-            newNode = list(pos = n, path = c(node$path, node$pos))
+            newNode = list(pos = n, path = c(node$path, n))
             queue = append(queue, list(newNode))
             visited = c(visited, c(n))
           }
@@ -60,15 +61,9 @@ bfs <- function(goal, ourPos, edges) {
 
 # Which waterhole to search in
 hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
-  # TODO: 
   transMatrix = transitionMatrix()
-  #print(transMatrix)
-  emissions = t(emissionsVector(readings, probs))
-  print(emissions)
-  #newProb = prevProb%*%transitionMatrix%*%emissions
-  
-  newProb = transitionMatrix%*%emissionsT
-  print(newProb)
+  emissions = emissionsVector(readings, probs)
+  newProb = prevProb%*%transMatrix%*%emissions
   return (newProb)
   
 }
@@ -77,12 +72,14 @@ myFunction <- function(moveInfo, readings, positions, edges, probs){
   #prevProb <- moveInfo$mem$prevProb
   prevProb= 1:40
   newProb <- hiddenMarkov(prevProb,readings, positions, edges, probs)
-  goal = 40
   
-  #goal <- which.max(newProb)
+  #goal = 40
+  
+  goal <- which.max(newProb)
   moves <- bfs(goal, positions[3],edges)
   
   moveInfo$moves = moves
+  print(moves)
   moveInfo$mem$prevProb <- newProb
   return(moveInfo)
 }
