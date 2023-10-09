@@ -25,7 +25,9 @@ emissionsVector <- function(readings, probs){
 }
 
 transitionMatrix <- function() {
-  return(matrix(1:1600, nrow = 40))
+  matrix = replicate(1600, 1)
+  transitionMatrix = matrix(matrix, nrow = 40)
+  return(diag(40))
 }
 
 # Breath-first serach to find a path to porbPos
@@ -40,7 +42,6 @@ bfs <- function(goal, ourPos, edges) {
     while (length(queue) != 0){
       node = queue[[1]]
       if (node$pos == goal){
-        print(node$path)
         if (length(node$path) == 1){return(c(node$path,0))}
         else{return(c(node$path[1],node$path[2]))}
       }
@@ -63,23 +64,22 @@ bfs <- function(goal, ourPos, edges) {
 hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
   transMatrix = transitionMatrix()
   emissions = emissionsVector(readings, probs)
-  newProb = prevProb%*%transMatrix%*%emissions
-  return (newProb)
-  
+  newProb = transMatrix%*%emissions
+  markovProb = newProb*prevProb
+  return (markovProb)
 }
 
 myFunction <- function(moveInfo, readings, positions, edges, probs){
   #prevProb <- moveInfo$mem$prevProb
-  prevProb= 1:40
+  prevProb= replicate(40,1)
   newProb <- hiddenMarkov(prevProb,readings, positions, edges, probs)
   
-  #goal = 40
-  
   goal <- which.max(newProb)
+  print(goal)
   moves <- bfs(goal, positions[3],edges)
   
   moveInfo$moves = moves
-  print(moves)
+  
   moveInfo$mem$prevProb <- newProb
   return(moveInfo)
 }
