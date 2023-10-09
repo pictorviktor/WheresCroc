@@ -25,7 +25,7 @@ emissionsVector <- function(readings, probs){
 }
 
 transitionMatrix <- function() {
-  pass
+  return(matrix(1:1600, nrow = 40))
 }
 
 # Breath-first serach to find a path to porbPos
@@ -61,19 +61,25 @@ bfs <- function(goal, ourPos, edges) {
 # Which waterhole to search in
 hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
   # TODO: 
-  # 1. Trans matrix = transitionMatrix()
-  emissions = emissionsVector(readings, probs)
-  #newProbPos = prevProb*transitionMatrix()*emissions
-  newProb = prevProb*emissions
+  transMatrix = transitionMatrix()
+  #print(transMatrix)
+  emissions = t(emissionsVector(readings, probs))
+  print(emissions)
+  #newProb = prevProb%*%transitionMatrix%*%emissions
+  
+  newProb = transitionMatrix%*%emissionsT
+  print(newProb)
   return (newProb)
   
 }
 
 myFunction <- function(moveInfo, readings, positions, edges, probs){
-  prevProb <- moveInfo$mem$prevProb
+  #prevProb <- moveInfo$mem$prevProb
+  prevProb= 1:40
   newProb <- hiddenMarkov(prevProb,readings, positions, edges, probs)
+  goal = 40
   
-  goal <- which.max(newProb)
+  #goal <- which.max(newProb)
   moves <- bfs(goal, positions[3],edges)
   
   moveInfo$moves = moves
@@ -85,3 +91,4 @@ myFunction <- function(moveInfo, readings, positions, edges, probs){
 
 runWheresCroc(myFunction, doPlot = T, showCroc = T, pause = 1,
               verbose = T, returnMem = F, mem = NA)
+
