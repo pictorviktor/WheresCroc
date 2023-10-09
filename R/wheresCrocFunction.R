@@ -19,10 +19,9 @@ emissionsVector <- function(readings, probs){
   }
   sum = sum(p)
   for (i in 1:40) {
-    #print(sum(p))
     p[i] = p[i] / sum # normalize
   }
-  return(p) # highest prob pos for croc (Vector)
+  return(p) # prob of each pos for croc given readings (Vector)
 }
 
 transitionMatrix <- function() {
@@ -60,23 +59,25 @@ bfs <- function(goal, ourPos, edges) {
 }
 
 # Which waterhole to search in
-hiddenMarkov <- function(prevProbPos, readings, positions, edges, probs){
+hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
   # TODO: 
   # 1. Trans matrix = transitionMatrix()
   emissions = emissionsVector(readings, probs)
-  #newProbPos = prevProbPos*transitionMatrix()*emissions
-  newProbPos = prevProbPos*emissions
-  return (which.max(newProbPos))
+  #newProbPos = prevProb*transitionMatrix()*emissions
+  newProb = prevProb*emissions
+  return (newProb)
   
 }
 
 myFunction <- function(moveInfo, readings, positions, edges, probs){
-  prevProbPos = 40
-  probPos <- hiddenMarkov(prevProbPos,readings, positions, edges, probs)
-  goal = #We need to find a a goal node, based on probPos
+  prevProb <- moveInfo$mem$prevProb
+  newProb <- hiddenMarkov(prevProb,readings, positions, edges, probs)
+  
+  goal <- which.max(newProb)
   moves <- bfs(goal, positions[3],edges)
+  
   moveInfo$moves = moves
-  print(moves)
+  moveInfo$mem$prevProb <- newProb
   return(moveInfo)
 }
 
