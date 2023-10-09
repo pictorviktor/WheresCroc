@@ -33,7 +33,6 @@ transitionMatrix <- function(edges) {
       transitionMatrix[i,n] = 1/length(neighbors)
     }
   }
-  #print(transitionMatrix)
   return(transitionMatrix)
 }
 
@@ -49,7 +48,7 @@ bfs <- function(goal, ourPos, edges) {
     while (length(queue) != 0){
       node = queue[[1]]
       if (node$pos == goal){
-        if (length(node$path) <= 2){return(c(node$path,0))}
+        if (length(node$path) <= 2){return(c(node$path[1],0))}
         else{return(c(node$path[1],node$path[2]))}
       }
       else{
@@ -86,9 +85,9 @@ myFunction <- function(moveInfo, readings, positions, edges, probs){
   newProb[positions[3]] <- 0
   
   goal <- which.max(newProb)
-  print(goal)
+  #print(goal)
   moves <- bfs(goal, positions[3],edges)
-  print(moves)
+  #print(moves)
   
   moveInfo$moves <- moves
   
@@ -101,4 +100,5 @@ myFunction <- function(moveInfo, readings, positions, edges, probs){
 
 runWheresCroc(myFunction, doPlot = T, showCroc = T, pause = 1,
               verbose = T, returnMem = F, mem = NA)
-
+testWC(myFunction, verbose = 1, returnVec = FALSE, n = 500, seed = 21,
+       timeLimit = 300)
