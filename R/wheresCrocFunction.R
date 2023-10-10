@@ -8,6 +8,7 @@ getOptions=function(point,edges) {
   c(edges[which(edges[,1]==point),2],edges[which(edges[,2]==point),1],point)
 }
 
+# Create an emissions matrix based on the readings
 emissionsVector <- function(readings, probs){
   salinity = dnorm(readings[1], probs[["salinity"]][, 1], probs[["salinity"]][, 2], FALSE)
   phosphate = dnorm(readings[2], probs[["phosphate"]][, 1], probs[["phosphate"]][, 2], FALSE)
@@ -24,6 +25,7 @@ emissionsVector <- function(readings, probs){
   return(p) # prob of each pos for croc given readings (Vector)
 }
 
+#Create a transition matrix. Only done once at the start of a new game
 transitionMatrix <- function(edges) {
   matrix = matrix(0, nrow = 40, ncol = 40)
   transitionMatrix = matrix(matrix, nrow = 40)
@@ -36,7 +38,7 @@ transitionMatrix <- function(edges) {
   return(transitionMatrix)
 }
 
-# Breath-first serach to find a path to porbPos
+# Breath-first search to find a path to goal node
 bfs <- function(goal, ourPos, edges) {
   if (ourPos == goal){
     return(c(0,0))
@@ -66,11 +68,10 @@ bfs <- function(goal, ourPos, edges) {
   }
 }
 
-# Which waterhole to search in
+# Hidden markov to find which waterhole to search in
 hiddenMarkov <- function(transitionMatrix, prevProb, readings, positions, edges, probs){
-  #transMatrix = transitionMatrix
   emissions = emissionsVector(readings, probs)
-  newProb = prevProb%*%transitionMatrix #%*%emissions
+  newProb = prevProb%*%transitionMatrix
   markovProb = newProb*emissions
   return (markovProb)
 }
@@ -78,25 +79,31 @@ hiddenMarkov <- function(transitionMatrix, prevProb, readings, positions, edges,
 myFunction <- function(moveInfo, readings, positions, edges, probs){
   if (moveInfo$mem$status == 0 || moveInfo$mem$status == 1) {
     moveInfo$mem$prevProb <- replicate(40,1)
-    moveInfo$mem$transistionMatrix <- transitionMatrix(edges)
+    moveInfo$mem$transitionMatrix <- transitionMatrix(edges)
   }
-  transitionMatrix <- moveInfo$mem$transistionMatrix
+  transitionMatrix <- moveInfo$mem$transitionMatrix
   prevProb <- moveInfo$mem$prevProb
   newProb <- hiddenMarkov(transitionMatrix, prevProb,readings, positions, edges, probs)
   
   
   #check for hikers
-  'if (!is.na(positions[1])){
-    print(positions[1])
+  if (!is.na(positions[1])){
     if (positions[1]<0){
-      newProb[positions[1]] = 1
+      newProb[-1*positions[1]] = 1
+    }
+    else{
+      newProb[positions[1]] = 0
     }
   }
   if (!is.na(positions[2])){
     if (positions[2]<0){
-      newProb[positions[2]] = 1
+      newProb[-1*positions[2]] = 1
     }
-  }'
+    else{
+      newProb[positions[2]] = 0
+    }
+  }
+  
   goal <- which.max(newProb)
   moves <- bfs(goal, positions[3],edges)
   moveInfo$moves <- moves
