@@ -1,9 +1,11 @@
-# Install the package
-install.packages("WheresCroc_1.2.2.tar.gz", repos = NULL, type="source")
+# File:         wheresCrocFunction.r 
+# Description:  Implemented-solution for Assignment 2, 
+#               in the Artificial Intelligence course 2023, UU.
 
-# Load the library
-library("WheresCroc")
+# Authors:      Niclas Björkqvist, Viktor Evestam and Felix Thulinsson
 
+
+# Taken from wheresCroc.r
 getOptions=function(point,edges) {
   c(edges[which(edges[,1]==point),2],edges[which(edges[,2]==point),1],point)
 }
@@ -14,15 +16,15 @@ emissionsVector <- function(readings, probs){
   phosphate = dnorm(readings[2], probs[["phosphate"]][, 1], probs[["phosphate"]][, 2], FALSE)
   nitrogen = dnorm(readings[3], probs[["nitrogen"]][, 1], probs[["nitrogen"]][, 2], FALSE)
   
-  p = replicate(40, 0)
+  prob = replicate(40, 0)
   for (i in 1:40) {
-    p[i] = salinity[i] * phosphate[i] * nitrogen[i]
+    prob[i] = salinity[i] * phosphate[i] * nitrogen[i]
   }
-  sum = sum(p)
+  sum = sum(prob)
   for (i in 1:40) {
-    p[i] = p[i] / sum # normalize
+    prob[i] = prob[i] / sum # normalize
   }
-  return(p) # prob of each pos for croc given readings (Vector)
+  return(prob) # prob of each pos for croc given readings (Vector)
 }
 
 #Create a transition matrix. Only done once at the start of a new game
@@ -76,17 +78,21 @@ hiddenMarkov <- function(transitionMatrix, prevProb, readings, positions, edges,
   return (markovProb)
 }
 
+
 myFunction <- function(moveInfo, readings, positions, edges, probs){
+  # Set up a new game
   if (moveInfo$mem$status == 0 || moveInfo$mem$status == 1) {
     moveInfo$mem$prevProb <- replicate(40,1)
     moveInfo$mem$transitionMatrix <- transitionMatrix(edges)
   }
+  
+  # Find the probability of each node through HMM
   transitionMatrix <- moveInfo$mem$transitionMatrix
   prevProb <- moveInfo$mem$prevProb
   newProb <- hiddenMarkov(transitionMatrix, prevProb,readings, positions, edges, probs)
   
   
-  #check for hikers
+  # Check for hikers
   if (!is.na(positions[1])){
     if (positions[1]<0){
       newProb[-1*positions[1]] = 1
@@ -104,6 +110,7 @@ myFunction <- function(moveInfo, readings, positions, edges, probs){
     }
   }
   
+  # Find highest probable node, and find path to that node
   goal <- which.max(newProb)
   moves <- bfs(goal, positions[3],edges)
   moveInfo$moves <- moves
@@ -112,10 +119,3 @@ myFunction <- function(moveInfo, readings, positions, edges, probs){
   moveInfo$mem$status <- 2
   return(moveInfo)
 }
-
-
-set.seed(993)
-runWheresCroc(myFunction, doPlot = T, showCroc = T, pause = 1,
-              verbose = T, returnMem = F, mem = NA)
-testWC(myFunction, verbose = 1, returnVec = FALSE, n = 500, seed = 21,
-       timeLimit = 300)
