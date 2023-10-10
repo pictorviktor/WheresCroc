@@ -67,10 +67,10 @@ bfs <- function(goal, ourPos, edges) {
 }
 
 # Which waterhole to search in
-hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
-  transMatrix = transitionMatrix(edges)
+hiddenMarkov <- function(transitionMatrix, prevProb, readings, positions, edges, probs){
+  #transMatrix = transitionMatrix
   emissions = emissionsVector(readings, probs)
-  newProb = prevProb%*%transMatrix #%*%emissions
+  newProb = prevProb%*%transitionMatrix #%*%emissions
   markovProb = newProb*emissions
   return (markovProb)
 }
@@ -78,9 +78,11 @@ hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
 myFunction <- function(moveInfo, readings, positions, edges, probs){
   if (moveInfo$mem$status == 0 || moveInfo$mem$status == 1) {
     moveInfo$mem$prevProb <- replicate(40,1)
+    moveInfo$mem$transistionMatrix <- transitionMatrix(edges)
   }
+  transitionMatrix <- moveInfo$mem$transistionMatrix
   prevProb <- moveInfo$mem$prevProb
-  newProb <- hiddenMarkov(prevProb,readings, positions, edges, probs)
+  newProb <- hiddenMarkov(transitionMatrix, prevProb,readings, positions, edges, probs)
   
   
   #check for hikers
