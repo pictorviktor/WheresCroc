@@ -70,8 +70,8 @@ bfs <- function(goal, ourPos, edges) {
 hiddenMarkov <- function(prevProb, readings, positions, edges, probs){
   transMatrix = transitionMatrix(edges)
   emissions = emissionsVector(readings, probs)
-  newProb = transMatrix%*%emissions
-  markovProb = newProb*prevProb
+  newProb = prevProb%*%transMatrix #%*%emissions
+  markovProb = newProb*emissions
   return (markovProb)
 }
 
@@ -79,16 +79,24 @@ myFunction <- function(moveInfo, readings, positions, edges, probs){
   if (moveInfo$mem$status == 0 || moveInfo$mem$status == 1) {
     moveInfo$mem$prevProb <- replicate(40,1)
   }
-  #prevProb <- moveInfo$mem$prevProb
-  #prevProb= replicate(40,1)
+  prevProb <- moveInfo$mem$prevProb
   newProb <- hiddenMarkov(prevProb,readings, positions, edges, probs)
-  newProb[positions[3]] <- 0
   
+  
+  #check for hikers
+  'if (!is.na(positions[1])){
+    print(positions[1])
+    if (positions[1]<0){
+      newProb[positions[1]] = 1
+    }
+  }
+  if (!is.na(positions[2])){
+    if (positions[2]<0){
+      newProb[positions[2]] = 1
+    }
+  }'
   goal <- which.max(newProb)
-  #print(goal)
   moves <- bfs(goal, positions[3],edges)
-  #print(moves)
-  
   moveInfo$moves <- moves
   
   moveInfo$mem$prevProb <- newProb
@@ -97,7 +105,7 @@ myFunction <- function(moveInfo, readings, positions, edges, probs){
 }
 
 
-
+set.seed(993)
 runWheresCroc(myFunction, doPlot = T, showCroc = T, pause = 1,
               verbose = T, returnMem = F, mem = NA)
 testWC(myFunction, verbose = 1, returnVec = FALSE, n = 500, seed = 21,
